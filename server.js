@@ -1,39 +1,29 @@
-const express = require("express");
-const app = express();
-const server = require("http").Server(app);
-const { v4: uuidv4 } = require("uuid");
-app.set("view engine", "ejs");
-const io = require("socket.io")(server, {
-  cors: {
-    origin: '*'
-  }
-});
-const { ExpressPeerServer } = require("peer");
-const opinions = {
-  debug: true,
-}
+//Create our express and socket.io servers
+const express = require('express')
+const app = express()
+const server = require('http').Server(app)
+const io = require('socket.io')(server)
+const {v4: uuidV4} = require('uuid')
 
-app.use("/peerjs", ExpressPeerServer(server, opinions));
-app.use(express.static("public"));
+app.set('view engine', 'ejs') // Tell Express we are using EJS
+app.use(express.static('public')) // Tell express to pull the client script from the public folder
 
-app.get("/", (req, res) => {
-  res.redirect(`/${uuidv4()}`);
-});
+// If they join a specific room, then render that room
+app.get('/', (req, res) => {
+    res.render('room', {roomId: "ROOM_ID"})
+})
+// When someone connects to the server
+io.on('connection', socket => {
+    // When someone attempts to join the room
+    socket.on('join-room', (roomId, userId) => {
+        socket.join(roomId)  // Join the room
+        socket.broadcast.emit('user-connected', userId) // Tell everyone else in the room that we joined
+        
+        // Communicate the disconnection
+        socket.on('disconnect', () => {
+            socket.broadcast.emit('user-disconnected', userId)
+        })
+    })
+})
 
-app.get("/:room", (req, res) => {
-  res.render("room", { roomId: req.params.room });
-});
-
-io.on("connection", (socket) => {
-  socket.on("join-room", (roomId, userId, userName) => {
-    socket.join(roomId);
-    setTimeout(()=>{
-      socket.to(roomId).broadcast.emit("user-connected", userId);
-    }, 1000)
-    socket.on("message", (message) => {
-      io.to(roomId).emit("createMessage", message, userName);
-    });
-  });
-});
-
-server.listen(process.env.PORT || 3030);
+server.listen(3000) // Run the server on the 3000 port
