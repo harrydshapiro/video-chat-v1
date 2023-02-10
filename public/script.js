@@ -55,9 +55,9 @@ function connectToNewUser(userId, stream) { // This runs when someone joins our 
 
 
 function addVideoStream(video, stream) {
-    video.muted = true;
-    video.playsinline = true;
-    video.autoplay.true = true;
+    video.setAttribute('muted', true);
+    video.setAttribute('playsinline', true);
+    video.setAttribute('autoplay', true);
     video.srcObject = stream 
     video.addEventListener('loadedmetadata', () => { // Play the video as it loads
         video.play()
