@@ -26,4 +26,6 @@ io.on('connection', socket => {
     })
 })
 
-server.listen(3000) // Run the server on the 3000 port
+const port = process.env.PORT || 3000
+
+server.listen(port) // Run the server on the 3000 port
